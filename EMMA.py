@@ -1,5 +1,6 @@
 import sys
 import os
+import psutil
 import json
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication
@@ -25,11 +26,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableView_favourites.setSortingEnabled(True)
 
         # Set headers for the tables
-        self.installed_model.setHorizontalHeaderLabels(["name", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
-        self.favourites_model.setHorizontalHeaderLabels(["name", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
+        self.installed_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
+        self.favourites_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
 
         # Load library.json
-        self.load_data_from_json(r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json", self.installed_model)
+        self.library_path = r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json"
+        self.modsuserdata_dir = os.path.dirname(self.library_path)
+        self.mods_dir = os.path.join(os.path.dirname(os.path.dirname(self.modsuserdata_dir)), "Mods")
+        self.load_data_from_json(self.library_path, self.installed_model)
 
         # Create favourites.json if it's missing
         if not os.path.exists("favourites.json"):
@@ -42,6 +46,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         """ # Connect the button click signal
         self.pushButton_ToggleFavourite.clicked.connect(self.toggle_favourite) """
+
+        self.pushButton_clearDynamicDownloads.clicked.connect(self.clear_dynamic_downloads)
 
     def eventFilterOLD(self, obj, event):
         if event.type() == QEvent.Type.ContextMenu and obj is self.tableView_installed:
@@ -174,6 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # print(mod)
 
                 name = mod.get("details", {}).get("name", "")
+                modId = mod.get("details", {}).get("iD", "")
                 dateUpdated = mod.get("dateUpdated", "")
                 dateInstalled = mod.get("dateInstalled", "")
                 pathOnDisk = mod.get("pathOnDisk", "")
@@ -183,37 +190,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 latestVersionID = mod.get("latestUpdatedFile", {}).get("iD", "")
 
                 # Create a row with the extracted data
-                row = [QStandardItem(name), QStandardItem(dateUpdated), QStandardItem(dateInstalled), QStandardItem(pathOnDisk), QStandardItem(installedVersion), QStandardItem(str(installedVersionID)), QStandardItem(latestVersion), QStandardItem(str(latestVersionID))]
+                row = [QStandardItem(name), QStandardItem(str(modId)), QStandardItem(dateUpdated), QStandardItem(dateInstalled), QStandardItem(pathOnDisk), QStandardItem(installedVersion), QStandardItem(str(installedVersionID)), QStandardItem(latestVersion), QStandardItem(str(latestVersionID))]
                 model.appendRow(row)  # Add the row to the model
 
         except Exception as e:
             print(f"Error loading JSON data: {e}")
 
-def add_to_favourites_from_row(self, row=None):
-    # Determine the row index based on the context
-    if row is None:  # If no row is provided, use the current index
-        selected_index = self.tableView_installed.currentIndex()
-        if not selected_index.isValid():
-            QMessageBox.warning(self, "Warning", "No mod selected.")
-            return
-        row = selected_index.row()  # Get the row from the current index
+    def add_to_favourites_from_row(self, row=None):
+        # Determine the row index based on the context
+        if row is None:  # If no row is provided, use the current index
+            selected_index = self.tableView_installed.currentIndex()
+            if not selected_index.isValid():
+                QMessageBox.warning(self, "Warning", "No mod selected.")
+                return
+            row = selected_index.row()  # Get the row from the current index
 
-    # Collect all values from the selected row into a list
-    row_data = []
-    for column in range(self.installed_model.columnCount()):
-        item = self.installed_model.item(row, column)
-        row_data.append(item.text() if item else "")  # Append the text or an empty string if the item is None
+        # Collect all values from the selected row into a list
+        row_data = []
+        for column in range(self.installed_model.columnCount()):
+            item = self.installed_model.item(row, column)
+            row_data.append(item.text() if item else "")  # Append the text or an empty string if the item is None
 
-    # Pass the entire row_data list to add_to_favourites
-    self.add_to_favourites(row_data)
+        # Pass the entire row_data list to add_to_favourites
+        self.add_to_favourites(row_data)
 
-def add_to_favourites(self, row_data):
-    # Create a new row for the favourites model
-    row = [QStandardItem(data) for data in row_data]  # Create QStandardItem for each data point
-    self.favourites_model.appendRow(row)  # Add the row to the model
+    def add_to_favourites(self, row_data):
+        # Create a new row for the favourites model
+        row = [QStandardItem(data) for data in row_data]  # Create QStandardItem for each data point
+        self.favourites_model.appendRow(row)  # Add the row to the model
 
-    # Save to favourites.json
-    self.save_favourites()
+        # Save to favourites.json
+        self.save_favourites()
 
 
     def remove_from_favourites_from_row(self, row):
@@ -229,13 +236,14 @@ def add_to_favourites(self, row_data):
 
         for row in range(self.favourites_model.rowCount()):
             name = self.favourites_model.item(row, 0).text()
-            date_updated = self.favourites_model.item(row, 1).text()
-            date_installed = self.favourites_model.item(row, 2).text()
-            path_on_disk = self.favourites_model.item(row, 3).text()
-            installed_version = self.favourites_model.item(row, 4).text()
-            installed_version_id = self.favourites_model.item(row, 5).text()
-            latest_version = self.favourites_model.item(row, 6).text()
-            latest_version_id = self.favourites_model.item(row, 7).text()
+            modId = self.favourites_model.item(row, 1).text()
+            date_updated = self.favourites_model.item(row, 2).text()
+            date_installed = self.favourites_model.item(row, 3).text()
+            path_on_disk = self.favourites_model.item(row, 4).text()
+            installed_version = self.favourites_model.item(row, 5).text()
+            installed_version_id = self.favourites_model.item(row, 6).text()
+            latest_version = self.favourites_model.item(row, 7).text()
+            latest_version_id = self.favourites_model.item(row, 8).text()
 
             # Append each mod's data as a dictionary to the installedMods list
             favourites_data["installedMods"].append({
@@ -243,6 +251,7 @@ def add_to_favourites(self, row_data):
                 "dateInstalled": date_installed,
                 "pathOnDisk": path_on_disk,
                 "details": {
+                    "iD": modId,
                     "name": name,
                 },
                 "installedFile": {
@@ -260,6 +269,61 @@ def add_to_favourites(self, row_data):
         with open("favourites.json", 'w') as file:
             json.dump(favourites_data, file, indent=4)
 
+    def is_process_running(self, process_name):
+        # Iterate over all running processes
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] == process_name:
+                return True
+        return False
+
+    def clear_dynamic_downloads(self):
+        # make sure game is closed
+        # open library.json (library_path) with 'w' rights
+        # find all mods that have "dynamicContent": true
+        # add the pathOnDisk of those mods to an array
+        # list all mods in a popup by name and have user confirm to remove them
+        # delete their entry in library.json
+        # close library.json, go one folder up from it, go to Mods folder and then delete all folders that have the names in the new pathOnDisk array
+
+        # Check if ArkAscended.exe is running
+        if self.is_process_running("ArkAscended.exe"):
+            print("ArkAscended.exe is running. Please close it before making changes.")
+        else:
+            print("ArkAscended.exe is not running. You can proceed with the changes.")
+            print("opening library.json with write rights")
+
+            try:
+                with open(self.library_path, 'r', encoding='utf-8-sig') as file: # change to 'w'
+                    data = json.load(file)  # Load the JSON data
+
+                # Access the list of installed mods
+                installed_mods = data.get("installedMods", [])
+
+                dynamicmod_names = []
+                dynamicmod_paths = []
+
+                for mod in installed_mods:
+                
+                    if mod.get("dynamicContent") == True:
+                        print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
+                        dynamicmod_names.append(mod.get("details", {}).get("name", ""))
+                        dynamicmod_paths.append(mod.get("pathOnDisk", ""))
+                
+                print("The following dynamic mods were found: ") # turn this into a popup´
+                for modname in dynamicmod_names:
+                    print(modname)
+                # print(dynamicmod_names)
+                # print(dynamicmod_paths)
+
+            except Exception as e:
+                print(f"Error loading JSON data: {e}")
+
+            # print(self.mods_dir)
+
+
+
+
+    
 
 
 if __name__ == "__main__":
