@@ -15,3 +15,5 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ colour row differently for dynamic downloads and/or custom cosmetics or add a custom "status" value to the front with an icon or something to say whether a mod is a full mod, custom cosmetic or dynamic custom cosmetic
     ☐ favourites.json saves installed version etc - but this is outdated if the mod is uninstalled or gets updated. should sync this on load maybe
     ☐ maybe favourites.json should just copy the whole installedMods entry - the file size shouldn't become an issue and that would make it much easier to access data like the website URL etc
+
+    ☐ @critical FIXME: dynamic downloads also include mods. this might also include mods downloaded by joining a server. need to filter out only the custom cosmetics with "clear dynamic downloads"

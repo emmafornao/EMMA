@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, Q
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtCore import QEvent, QModelIndex
 from mainwindow import Ui_MainWindow  # Import the generated UI class
+from cleardynamicdownloads import Ui_ClearDynamicDownloads
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -299,19 +300,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # Access the list of installed mods
                 installed_mods = data.get("installedMods", [])
 
-                dynamicmod_names = []
-                dynamicmod_paths = []
+                dynamicmod_names = set()
+                dynamicmod_paths = set()
+                dynamicmod_modId = set()
 
                 for mod in installed_mods:
                 
                     if mod.get("dynamicContent") == True:
-                        print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
-                        dynamicmod_names.append(mod.get("details", {}).get("name", ""))
-                        dynamicmod_paths.append(mod.get("pathOnDisk", ""))
+                        # print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
+                        dynamicmod_names.add(mod.get("details", {}).get("name", ""))
+                        dynamicmod_paths.add(mod.get("pathOnDisk", ""))
+                        dynamicmod_modId.add(mod.get("details", {}).get("iD", ""))
                 
-                print("The following dynamic mods were found: ") # turn this into a popup´
+                print(len(dynamicmod_modId))
+
+                """ print("The following dynamic mods were found: ") # turn this into a popup´
                 for modname in dynamicmod_names:
-                    print(modname)
+                    print(modname) """
+                
+
+                dialog = Ui_ClearDynamicDownloads(dynamicmod_names, self)
+                if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                    # Code to execute when Yes is pressed
+                    # print("Dialog accepted.")
+
+                    # Remove matching entries from installed_mods
+                    updated_installed_mods = [
+                        mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in dynamicmod_modId
+                    ]
+                    
+                    """ print("mods remaining: ")
+                    for mod in updated_installed_mods:
+                        print(mod.get("details", {}).get("name", "")) """
+                    
+                    # Update the data dictionary
+                    data["installedMods"] = updated_installed_mods
+
+                    # Write the updated data back to the JSON file
+                    with open('your_file.json', 'w', encoding='utf-8-sig') as file:
+                        json.dump(data, file)
+                                                                
+
                 # print(dynamicmod_names)
                 # print(dynamicmod_paths)
 
