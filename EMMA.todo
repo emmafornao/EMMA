@@ -4,6 +4,14 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ don't add to favourites when looking at a different tab
     ☐ add "remove dynamic cosmetics" and maybe also add this info to view (not favourites though since it's situational?)
     ☐ add category info?
-    ☐ option to load all items into table - can this be done dynamically?
+    ☐ option to load all items (all json keys and values I think I meant) into table - can this be done dynamically?
     ☐ fix toggle_favourite to use the right model (selected_index.model()?) and also remove the mod selected in favourites when it is toggled there and not otherwise
         maybe it's better to have separate buttons to add or remove in each tab as the user can't see whether a mod was already added or not while in the installed tab
+    ☐ when uninstalling: check if asa is running
+    ☐ when adding favourite: first check if it's already added - add mod id to favourites and the tables to have unique identifier
+    ☐ add a log file that tracks which mods have been deleted (dynamic or not?) or reinstalled and when and what their ID is
+    ☐ option to disable/enable mods? don't think that makes any sense. is that for SP?
+    ☐ option to turn selected dynamicContent mods to installed mods (if changing back is also allowed: make sure they are custom cosmetics)
+    ☐ colour row differently for dynamic downloads and/or custom cosmetics or add a custom "status" value to the front with an icon or something to say whether a mod is a full mod, custom cosmetic or dynamic custom cosmetic
+    ☐ favourites.json saves installed version etc - but this is outdated if the mod is uninstalled or gets updated. should sync this on load maybe
+    ☐ maybe favourites.json should just copy the whole installedMods entry - the file size shouldn't become an issue and that would make it much easier to access data like the website URL etc
