@@ -2,11 +2,16 @@ import sys
 import os
 import psutil
 import json
+import shutil
+from pathlib import Path
+from datetime import datetime
+
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtCore import QEvent, QModelIndex
-from mainwindow import Ui_MainWindow  # Import the generated UI class
+# UI Windows
+from mainwindow import Ui_MainWindow
 from cleardynamicdownloads import Ui_ClearDynamicDownloads
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -29,6 +34,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set headers for the tables
         self.installed_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
         self.favourites_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
+
+        self.log_file_path = Path("data/events.log")
+        self.log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Load library.json
         self.library_path = r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json"
@@ -290,9 +298,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.is_process_running("ArkAscended.exe"):
             print("ArkAscended.exe is running. Please close it before making changes.")
         else:
-            print("ArkAscended.exe is not running. You can proceed with the changes.")
-            print("opening library.json with write rights")
-
             try:
                 with open(self.library_path, 'r', encoding='utf-8-sig') as file: # change to 'w'
                     data = json.load(file)  # Load the JSON data
@@ -300,26 +305,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # Access the list of installed mods
                 installed_mods = data.get("installedMods", [])
 
-                dynamicmod_names = set()
-                dynamicmod_paths = set()
                 dynamicmod_modId = set()
+                dynamic_mods = {}
 
                 for mod in installed_mods:
                 
                     if mod.get("dynamicContent") == True:
                         # print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
-                        dynamicmod_names.add(mod.get("details", {}).get("name", ""))
-                        dynamicmod_paths.add(mod.get("pathOnDisk", ""))
                         dynamicmod_modId.add(mod.get("details", {}).get("iD", ""))
-                
-                print(len(dynamicmod_modId))
-
-                """ print("The following dynamic mods were found: ") # turn this into a popup´
-                for modname in dynamicmod_names:
-                    print(modname) """
+                        name = mod.get("details", {}).get("name", "")
+                        path = mod.get("pathOnDisk", "")
+                        dynamic_mods[path] = name
                 
 
-                dialog = Ui_ClearDynamicDownloads(dynamicmod_names, self)
+                dialog = Ui_ClearDynamicDownloads(dynamic_mods.values(), self)
                 if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
                     # Code to execute when Yes is pressed
                     # print("Dialog accepted.")
@@ -337,12 +336,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     data["installedMods"] = updated_installed_mods
 
                     # Write the updated data back to the JSON file
-                    with open('your_file.json', 'w', encoding='utf-8-sig') as file:
+                    with open(self.library_path, 'w', encoding='utf-8-sig') as file: #change this to self.library_path
                         json.dump(data, file)
-                                                                
 
-                # print(dynamicmod_names)
-                # print(dynamicmod_paths)
+                    # Open the log file in append mode
+                    with open(self.log_file_path, 'a', encoding='utf-8-sig') as log_file:
+                        for folder in dynamic_mods.keys():
+                            # Create the full path to the folder
+                            folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
+                            
+                            # Delete the folder
+                            shutil.rmtree(folder_path)
+                            
+                            # Get the current time
+                            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            
+                            # Write to the log file
+                            log_file.write(f"Deleted dynamically downloaded cosmetic: {dynamic_mods[folder]} at {current_time}. Path: {folder_path}\n")
+                    
+                
+                                                                
 
             except Exception as e:
                 print(f"Error loading JSON data: {e}")
