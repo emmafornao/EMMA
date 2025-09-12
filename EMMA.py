@@ -43,15 +43,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.modsuserdata_dir = os.path.dirname(self.library_path)
         self.mods_dir = os.path.join(os.path.dirname(os.path.dirname(self.modsuserdata_dir)), "Mods")
         self.load_data_from_json(self.library_path, self.installed_model)
+        self.favourites_path = Path("data/favourites.json")
 
         # Create favourites.json if it's missing
-        if not os.path.exists("favourites.json"):
-            if "favourites" in "favourites.json":  # Check if it's the favourites file
-                with open("favourites.json", 'w') as file:
+        if not os.path.exists(self.favourites_path):
+            if "favourites" in str(self.favourites_path):  # Check if it's the favourites file
+                with open(self.favourites_path, 'w') as file:
                     json.dump({"installedMods": []}, file, indent=4)  # Create an empty structure
 
         # Load favourites.json
-        self.load_data_from_json("favourites.json", self.favourites_model)
+        self.load_data_from_json(self.favourites_path, self.favourites_model)
 
         """ # Connect the button click signal
         self.pushButton_ToggleFavourite.clicked.connect(self.toggle_favourite) """
@@ -275,7 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             })
 
         # Write the structured data to favourites.json
-        with open("favourites.json", 'w') as file:
+        with open(self.favourites_path, 'w') as file:
             json.dump(favourites_data, file, indent=4)
 
     def is_process_running(self, process_name):

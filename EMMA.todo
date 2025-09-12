@@ -7,9 +7,9 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ option to load all items (all json keys and values I think I meant) into table - can this be done dynamically?
     ☐ fix toggle_favourite to use the right model (selected_index.model()?) and also remove the mod selected in favourites when it is toggled there and not otherwise
         maybe it's better to have separate buttons to add or remove in each tab as the user can't see whether a mod was already added or not while in the installed tab
-    ☐ when uninstalling: check if asa is running
+    ✔ when uninstalling: check if asa is running @done(25-09-12 11:03)
     ☐ when adding favourite: first check if it's already added - add mod id to favourites and the tables to have unique identifier
-    ☐ add a log file that tracks which mods have been deleted (dynamic or not?) or reinstalled and when and what their ID is
+    ☐ add a log file that tracks which mods have been deleted (dynamic or not?) or reinstalled and when and what their ID is @started(25-09-12 11:03)
     ☐ option to disable/enable mods? don't think that makes any sense. is that for SP?
     ☐ option to turn selected dynamicContent mods to installed mods (if changing back is also allowed: make sure they are custom cosmetics)
     ☐ colour row differently for dynamic downloads and/or custom cosmetics or add a custom "status" value to the front with an icon or something to say whether a mod is a full mod, custom cosmetic or dynamic custom cosmetic
@@ -18,3 +18,5 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
     ☐ @critical FIXME: dynamic downloads also include mods. this might also include mods downloaded by joining a server. need to filter out only the custom cosmetics with "clear dynamic downloads"
         -> or maybe I'm just tired and I was looking at the temporary your_file.json which is the mods that are kept, not the ones that are deleted. oops.
+
+    ✔ move favourites.json into data/ @done(25-09-12 11:02)
