@@ -20,3 +20,4 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
         -> or maybe I'm just tired and I was looking at the temporary your_file.json which is the mods that are kept, not the ones that are deleted. oops.
 
     ✔ move favourites.json into data/ @done(25-09-12 11:02)
+    ☐ only write to events.log when shutil.rmtree() was successful
