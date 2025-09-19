@@ -1,6 +1,5 @@
 EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)
-    ☐ uninstall all: pop-up dialog to confirm
     ☐ don't add to favourites when looking at a different tab
     ☐ add "remove dynamic cosmetics" and maybe also add this info to view (not favourites though since it's situational?)
     ☐ add category info?
@@ -21,3 +20,10 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
     ✔ move favourites.json into data/ @done(25-09-12 11:02)
     ☐ only write to events.log when shutil.rmtree() was successful
+    ☐ clean up commented code (specifically for log_event and log_file_path which were replaced by a logger)
+    ☐ write a delete_mod() function and use that for deleting single mods but also to clean up the dynamic downloads function (remove from library.json, delete folder and write to log all within this new function)
+    
+    UI:
+        ☐ About Menu
+        ☐ Folder/File Select Dialog
+        ☐ uninstall all: pop-up dialog to confirm - make cleardynamicdownloads.py compatible and reuse it?

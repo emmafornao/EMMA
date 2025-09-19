@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 from datetime import datetime
+import logging
 
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication
@@ -18,6 +19,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)  # Set up the UI
+
+        # Create data folder in case it doesn't exist yet
+        os.makedirs('data', exist_ok = True)
+
+        # Create logger
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+
+        # Create a FileHandler
+        file_handler = logging.FileHandler('data/events.log')
+        file_handler.setLevel(logging.DEBUG)  # Set the handler's logging level
+
+        # Create a formatter and set it for the handler
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Add the handler to the logger
+        self.logger.addHandler(file_handler)
+
+        """ # create console handler and set level to debug
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+
+        # create formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        # add formatter to ch
+        ch.setFormatter(formatter)
+
+        # add ch to logger
+        self.logger.addHandler(ch) """
 
         # Create models for the QTableViews
         self.installed_model = QStandardItemModel()
@@ -35,8 +67,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.installed_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
         self.favourites_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
 
-        self.log_file_path = Path("data/events.log")
-        self.log_file_path.parent.mkdir(parents=True, exist_ok=True)
+        """ self.log_file_path = Path("data/events.log")
+        self.log_file_path.parent.mkdir(parents=True, exist_ok=True) """
 
         # Load library.json
         self.library_path = r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json"
@@ -286,6 +318,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
         return False
 
+    def log_event(self, eventType, eventName, addInfo):
+        """ # Open the log file in append mode
+        with open(self.log_file_path, 'a', encoding='utf-8-sig') as log_file:
+
+                # Get the current time
+                current_time = datetime.now().isoformat()
+                
+                # Write to the log file
+                log_file.write(f"{current_time}    {eventType}    {eventName}    {addInfo}\n") """
+        self.logger.info('%s - %s - %s', eventType, eventName, addInfo)
+
     def clear_dynamic_downloads(self):
         # make sure game is closed
         # open library.json (library_path) with 'w' rights
@@ -336,25 +379,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     # Update the data dictionary
                     data["installedMods"] = updated_installed_mods
 
-                    # Write the updated data back to the JSON file
-                    with open(self.library_path, 'w', encoding='utf-8-sig') as file: #change this to self.library_path
-                        json.dump(data, file)
-
                     # Open the log file in append mode
-                    with open(self.log_file_path, 'a', encoding='utf-8-sig') as log_file:
-                        for folder in dynamic_mods.keys():
-                            # Create the full path to the folder
-                            folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
-                            
-                            # Delete the folder
-                            shutil.rmtree(folder_path)
-                            
-                            # Get the current time
-                            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            
-                            # Write to the log file
-                            log_file.write(f"Deleted dynamically downloaded cosmetic: {dynamic_mods[folder]} at {current_time}. Path: {folder_path}\n")
+                    # with open(self.log_file_path, 'a', encoding='utf-8-sig') as log_file:
+
+                    for folder in dynamic_mods.keys():
+
+                        # Create the full path to the folder so it can be deleted
+                        folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
+                        
+                        # Delete the folder
+                        # shutil.rmtree(folder_path)
+
+                        # Check if the directory exists before attempting to delete
+                        if os.path.exists(folder_path):
+                            try:
+                                shutil.rmtree(folder_path)
+                                print(f"'{folder_path}' has been deleted successfully.")
+                            except Exception as e:
+                                print(f"An error occurred: {e}")
+                                self.logger.error({e})
+                        else:
+                            print(f"'{folder_path}' does not exist.")
+                            self.logger.warning('Mod folder %s does not exist and can not be deleted.', folder)
+
+                        
+                        """ # Get the current time
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        # Write to the log file
+                        log_file.write(f"Deleted dynamically downloaded cosmetic: {dynamic_mods[folder]} at {current_time}. Path: {folder}\n") """
+
+                        # Write using logger
+                        self.log_event("CLEARDYNAMIC", dynamic_mods[folder], f'Path: {folder}')
                     
+
+                    # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
+                    with open(self.library_path, 'w', encoding='utf-8-sig') as file:
+                        json.dump(data, file)
                 
                                                                 
 
