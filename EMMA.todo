@@ -15,15 +15,27 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ favourites.json saves installed version etc - but this is outdated if the mod is uninstalled or gets updated. should sync this on load maybe
     ☐ maybe favourites.json should just copy the whole installedMods entry - the file size shouldn't become an issue and that would make it much easier to access data like the website URL etc
 
-    ☐ @critical FIXME: dynamic downloads also include mods. this might also include mods downloaded by joining a server. need to filter out only the custom cosmetics with "clear dynamic downloads"
-        -> or maybe I'm just tired and I was looking at the temporary your_file.json which is the mods that are kept, not the ones that are deleted. oops.
+    ✘ @critical FIXME: dynamic downloads also include mods. this might also include mods downloaded by joining a server. need to filter out only the custom cosmetics with "clear dynamic downloads" @cancelled(25-09-19 11:09)
+        ✘ -> or maybe I'm just tired and I was looking at the temporary your_file.json which is the mods that are kept, not the ones that are deleted. oops. @cancelled(25-09-19 11:09)
 
     ✔ move favourites.json into data/ @done(25-09-12 11:02)
     ☐ only write to events.log when shutil.rmtree() was successful
     ☐ clean up commented code (specifically for log_event and log_file_path which were replaced by a logger)
     ☐ write a delete_mod() function and use that for deleting single mods but also to clean up the dynamic downloads function (remove from library.json, delete folder and write to log all within this new function)
+
+    ☐ add waypoint manager as well (needs game closed, can list all waypoints already added, export them for later, import them, have sets stored for explorer notes, quickly set to show/hide them and also remove the explorer note ones again. could also generate a waypoint based on coords but height wouldn't work)
+
+    Status Icon:
+        ☐ Custom Cosmetic: 'primaryCategoryId': 6844, means custom cosmetic. coud also check 'categories' for entry with 'iD' == 6844 but I would hope they are always the primary category
+        ☐ Dynamic Download / Dynamic Cosmetic: 'dynamicContent' == true, possibly also primaryCatergoryId for custom cosmetics though that might not be necessary
+        ☐ Mods: enabled == true or also not part of either of the above should be a mod (enabled is not a great indicator if we want to be able to disable mods from there for whatever reason)
     
     UI:
         ☐ About Menu
-        ☐ Folder/File Select Dialog
+        ☐ Folder/File Select Dialog @high
         ☐ uninstall all: pop-up dialog to confirm - make cleardynamicdownloads.py compatible and reuse it?
+        ☐ define functions for:
+                    ✔ self.action_select_ark_folder.triggered.connect(self.select_ark_folder) @done(25-09-21 10:31)
+                    self.action_settings.triggered.connect(self.settings_menu)
+                    ✔ self.action_about.triggered.connect(self.about_menu) @done(25-09-21 10:50)
+        

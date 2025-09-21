@@ -1,4 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication
 
 
 class Ui_MainWindow(object):
@@ -34,12 +36,26 @@ class Ui_MainWindow(object):
         self.pushButton_clearDynamicDownloads.setGeometry(QtCore.QRect(240, 549, 180, 25))
         self.pushButton_clearDynamicDownloads.setObjectName("pushButton_clearDynamicDownloads")
         MainWindow.setCentralWidget(self.centralwidget)
+
+
         self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 20))
         self.file_menu = self.menubar.addMenu("File")
-        self.file_menu.addAction("Select Ark Folder...")
-        self.file_menu.addAction("Settings")
-        self.file_menu.addAction("About")
+
+        self.action_select_ark_folder = QAction("Select Ark &Folder...", self)
+        self.action_settings = QAction("&Settings", self)
+        self.action_settings.setShortcut("Ctrl+O")
+        self.action_about = QAction("&About", self)
+        self.action_exit = QAction("&Exit", self)
+        self.action_exit.setShortcut("Ctrl+Q")
+        self.action_exit.setStatusTip("Exit application")
+        self.action_exit.triggered.connect(QApplication.instance().quit)
+
+        self.file_menu.addAction(self.action_select_ark_folder)
+        self.file_menu.addAction(self.action_settings)
+        self.file_menu.addAction(self.action_about)
+        self.file_menu.addAction(self.action_exit)
+
         MainWindow.setMenuBar(self.menubar)
         """ self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
         self.statusbar.setObjectName("statusbar")

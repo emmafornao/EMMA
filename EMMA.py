@@ -8,9 +8,9 @@ from datetime import datetime
 import logging
 
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication
+from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication, QFileDialog
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtCore import QEvent, QModelIndex
+from PyQt6.QtCore import QEvent, QModelIndex, Qt
 # UI Windows
 from mainwindow import Ui_MainWindow
 from cleardynamicdownloads import Ui_ClearDynamicDownloads
@@ -20,6 +20,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)  # Set up the UI
 
+        # Logger
         # Create data folder in case it doesn't exist yet
         os.makedirs('data', exist_ok = True)
 
@@ -38,19 +39,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Add the handler to the logger
         self.logger.addHandler(file_handler)
 
-        """ # create console handler and set level to debug
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
 
-        # create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # Config
+        self.config_file_path = 'data/config.json'
+        self.config = self.load_config()
 
-        # add formatter to ch
-        ch.setFormatter(formatter)
 
-        # add ch to logger
-        self.logger.addHandler(ch) """
-
+        # UI
         # Create models for the QTableViews
         self.installed_model = QStandardItemModel()
         self.favourites_model = QStandardItemModel()
@@ -67,14 +62,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.installed_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
         self.favourites_model.setHorizontalHeaderLabels(["name", "mod id", "dateUpdated", "dateInstalled", "pathOnDisk", "installedVersion", "installedVersionID", "latestVersion", "latestVersionID"])
 
-        """ self.log_file_path = Path("data/events.log")
-        self.log_file_path.parent.mkdir(parents=True, exist_ok=True) """
 
         # Load library.json
-        self.library_path = r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json"
-        self.modsuserdata_dir = os.path.dirname(self.library_path)
-        self.mods_dir = os.path.join(os.path.dirname(os.path.dirname(self.modsuserdata_dir)), "Mods")
-        self.load_data_from_json(self.library_path, self.installed_model)
+        # self.config.get("library_path", "") = r"D:\SteamLibrary\steamapps\common\ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\library.json"
+        # self.library_path = self.config.get("library_path", "")
+        # self.modsuserdata_dir = os.path.dirname(self.config.get("library_path", ""))
+        # self.mods_dir = os.path.join(os.path.dirname(os.path.dirname(self.modsuserdata_dir)), "Mods")
+        try:
+            self.load_data_from_json(self.config.get("library_path", ""), self.installed_model)
+        except Exception as e:
+            print(f"Config file does not exist or is missing library_path. Please select your ark folder. Error: {e}")
         self.favourites_path = Path("data/favourites.json")
 
         # Create favourites.json if it's missing
@@ -90,6 +87,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_ToggleFavourite.clicked.connect(self.toggle_favourite) """
 
         self.pushButton_clearDynamicDownloads.clicked.connect(self.clear_dynamic_downloads)
+        self.action_select_ark_folder.triggered.connect(self.select_ark_folder)
+        self.action_settings.triggered.connect(self.settings_menu)
+        self.action_about.triggered.connect(self.about_menu)
+
+    def load_config(self):
+        try:
+            with open(self.config_file_path, 'r', encoding='utf-8-sig') as config_file:
+                return json.load(config_file)
+        except Exception as e:
+            self.logger.error('Failed to load config.json: %s', e)
+            try:
+                # Create config.json if it's missing
+                if not os.path.exists(self.config_file_path):
+                    if "config" in str(self.config_file_path):  # Check if it's the favourites file
+                        with open(self.config_file_path, 'w') as file:
+                            self.config = {
+                                "game_path": "",
+                                "library_path": "",
+                                "mods_path": ""
+                            }
+                            json.dump(self.config, file, indent=4)  # Create an empty structure
+                self.logger.info('config.json has been created.')
+            except Exception as e:
+                self.logger.error('Failed to create config.json: %s', e)
+    
+    def save_config(self):
+        try:
+            with open(self.config_file_path, 'w', encoding='utf-8') as config_file:
+                json.dump(self.config, config_file, indent=4)
+                # self.logger.info('Config saved successfully.')
+        except Exception as e:
+            self.logger.error('Failed to save config.json: %s', e)    
 
     def eventFilterOLD(self, obj, event):
         if event.type() == QEvent.Type.ContextMenu and obj is self.tableView_installed:
@@ -343,7 +372,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("ArkAscended.exe is running. Please close it before making changes.")
         else:
             try:
-                with open(self.library_path, 'r', encoding='utf-8-sig') as file: # change to 'w'
+                with open(self.config.get("library_path", ""), 'r', encoding='utf-8-sig') as file: # change to 'w'
                     data = json.load(file)  # Load the JSON data
 
                 # Access the list of installed mods
@@ -360,6 +389,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         name = mod.get("details", {}).get("name", "")
                         path = mod.get("pathOnDisk", "")
                         dynamic_mods[path] = name
+                        # print(mod)
                 
 
                 dialog = Ui_ClearDynamicDownloads(dynamic_mods.values(), self)
@@ -385,7 +415,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     for folder in dynamic_mods.keys():
 
                         # Create the full path to the folder so it can be deleted
-                        folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
+                        # folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
+                        try:
+                            folder_path = self.config.get("mods_path", "") / folder
+                        except Exception as e:
+                            print(f"Mod path missing in config file. Did you select your Ark Folder yet? Error: {e}")
                         
                         # Delete the folder
                         # shutil.rmtree(folder_path)
@@ -414,7 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     
 
                     # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
-                    with open(self.library_path, 'w', encoding='utf-8-sig') as file:
+                    with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
                         json.dump(data, file)
                 
                                                                 
@@ -423,11 +457,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 print(f"Error loading JSON data: {e}")
 
             # print(self.mods_dir)
-
-
-
-
+        
+    def select_ark_folder(self):
+        # self.config.get("library_path", "") 
+        # self.config.set("library_path")
+        folder = QFileDialog.getExistingDirectory(self,("Open \"ARK Survival Ascended\" Folder"))
+        # print(folder)
+        # print(folder + "/ShooterGame/Binaries/Win64/ShooterGame/ModsUserData/83374/library.json")
+        self.config["game_path"] = folder
+        self.config["library_path"] = folder +  "/ShooterGame/Binaries/Win64/ShooterGame/ModsUserData/83374/library.json"
+        self.config["mods_path"] = folder + "/ShooterGame/Binaries/Win64/ShooterGame/Mods/"
+        # print(self.config.get("library_path", ""))
+        self.save_config()
+        self.load_data_from_json(self.config.get("library_path", ""), self.installed_model)
     
+    def settings_menu(self):
+        # make a settings menu
+        return None
+    
+    def about_menu(self):
+        # make an about menu
+
+        text = "<center>" \
+            "<b>E</b>mma's <b>M</b>od <b>M</b>anager for <b>A</b>rk: Survival Ascended" \
+            "&#8291;" \
+            "<p>Version 0.0.1<br/>" \
+            "<a href='https://github.com/emmafornao/EMMA'>https://github.com/emmafornao/EMMA</a></p>" \
+            "</center>"
+
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("About EMMA")
+        msg_box.setTextFormat(Qt.TextFormat.RichText)  # Set text format to RichText
+        msg_box.setText(text)  # Set the text
+        msg_box.exec()  # Show the message box
 
 
 if __name__ == "__main__":
