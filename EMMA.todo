@@ -20,7 +20,8 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
     ✔ move favourites.json into data/ @done(25-09-12 11:02)
     ☐ only write to events.log when shutil.rmtree() was successful
-    ☐ clean up commented code (specifically for log_event and log_file_path which were replaced by a logger)
+
+
     ☐ write a delete_mod() function and use that for deleting single mods but also to clean up the dynamic downloads function (remove from library.json, delete folder and write to log all within this new function)
 
     ☐ add waypoint manager as well (needs game closed, can list all waypoints already added, export them for later, import them, have sets stored for explorer notes, quickly set to show/hide them and also remove the explorer note ones again. could also generate a waypoint based on coords but height wouldn't work)
@@ -38,4 +39,12 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
                     ✔ self.action_select_ark_folder.triggered.connect(self.select_ark_folder) @done(25-09-21 10:31)
                     self.action_settings.triggered.connect(self.settings_menu)
                     ✔ self.action_about.triggered.connect(self.about_menu) @done(25-09-21 10:50)
+    
+    Functions:
+        ☐ save_favourites(): rewrite to use library.json data
+        ☐ add_to_favourites(): reload self.favourites from file?
+        ☐ open_mod_website(): use self.favourites instead once it's changed to contain all values from library (as a mod could be favourited but not installed)
+        ☐ clean up commented code (specifically for log_event and log_file_path which were replaced by a logger)
+        ☐ eventFilterOLD(self, obj, event): can this be removed?
+        ☐ add/remove favourites: change from row to self.tableView_installed.selectedIndexes() to add/remove all selected
         

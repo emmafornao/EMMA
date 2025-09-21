@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 import logging
+import webbrowser
 
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication, QFileDialog
@@ -44,6 +45,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_file_path = 'data/config.json'
         self.config = self.load_config()
 
+        # keep copies that are updated whenever load_data_from_json() is called
+        self.library = {}
+        self.favourites = {}
+
 
         # UI
         # Create models for the QTableViews
@@ -72,7 +77,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.load_data_from_json(self.config.get("library_path", ""), self.installed_model)
         except Exception as e:
             print(f"Config file does not exist or is missing library_path. Please select your ark folder. Error: {e}")
-        self.favourites_path = Path("data/favourites.json")
+
+
+        self.favourites_path = "data/favourites.json"
 
         # Create favourites.json if it's missing
         if not os.path.exists(self.favourites_path):
@@ -189,8 +196,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menu = QMenu()
         menu.addAction("Select All").setData("select_all")
         menu.addAction("Remove from Favourites").setData("remove_from_favourites")
-        menu.addAction("Uninstall").setData("uninstall")
-        menu.addAction("Reinstall").setData("reinstall")
+        # menu.addAction("Uninstall").setData("uninstall")
+        # menu.addAction("Reinstall").setData("reinstall")
         menu.addAction("Open Website").setData("open_website")
 
         action = menu.exec(event.globalPos())
@@ -202,10 +209,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if action_data == "select_all":
                 print("Select All action triggered")
                 # Implement Select All functionality
+                self.tableView_installed.selectAll()
             elif action_data == "add_to_favourites":
                 print(f"Add to Favourites action triggered for row {row}")
                 # Implement Add to Favourites functionality using row
-                self.add_to_favourites_from_row(row)
+                # self.add_to_favourites_from_row(row)
+                self.add_to_favourites_from_row()
             elif action_data == "uninstall":
                 print(f"Uninstall action triggered for row {row}")
                 # Implement Uninstall functionality using row
@@ -215,6 +224,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif action_data == "open_website":
                 print(f"Open Website action triggered for row {row}")
                 # Implement Open Website functionality using row
+                self.open_mod_website(row, "installed")
 
     def handleFavouritesMenuAction(self, action, row):
         if action:
@@ -222,22 +232,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if action_data == "select_all":
                 print("Select All action triggered")
                 # Implement Select All functionality
+                self.tableView_favourites.selectAll()
             elif action_data == "remove_from_favourites":
                 print(f"Remove from Favourites action triggered for row {row}")
                 self.remove_from_favourites_from_row(row)
                 # Implement Remove from Favourites functionality using row
-            elif action_data == "uninstall":
-                print(f"Uninstall action triggered for row {row}")
-                # Implement Uninstall functionality using row
-            elif action_data == "reinstall":
-                print(f"Reinstall action triggered for row {row}")
-                # Implement Reinstall functionality using row
+            # elif action_data == "uninstall":
+            #     print(f"Uninstall action triggered for row {row}")
+            #     # Implement Uninstall functionality using row
+            # elif action_data == "reinstall":
+            #     print(f"Reinstall action triggered for row {row}")
+            #     # Implement Reinstall functionality using row
             elif action_data == "open_website":
                 print(f"Open Website action triggered for row {row}")
                 # Implement Open Website functionality using row
+                self.open_mod_website(row, "favourites")
 
-            
+    def open_mod_website(self, row, tableViewName):
+        # modId = self.favourites_model.item(row, 1).text() # Assuming mod id is in second column
 
+        weblink = ""
+
+        if tableViewName == "installed":
+            modId = int(self.installed_model.item(row, 1).text())
+
+            for mod in self.library:
+                if mod.get("details", {}).get("iD", "") == modId:
+                    weblink = mod.get("details", {}).get("links", {}).get("websiteUrl", "")
+                    break
+
+        elif tableViewName == "favourites":
+            modId = int(self.favourites_model.item(row, 1).text())
+
+            for mod in self.library: # while we need to check the favourites_model for the selected mod, the URL is currently not saved in favourites and therefore we need to search library instead
+                if mod.get("details", {}).get("iD", "") == modId:
+                    weblink = mod.get("details", {}).get("links", {}).get("websiteUrl", "")
+                    break
+        
+        webbrowser.open(weblink)
 
     def load_data_from_json(self, file_path, model):
         try:
@@ -246,6 +278,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # Access the list of installed mods
             installed_mods = data.get("installedMods", [])
+
+            if "library.json" in file_path:
+                    self.library = installed_mods
+            elif "favourites.json" in file_path:
+                self.favourites = installed_mods
 
             for mod in installed_mods:
                 # print(mod)
@@ -292,7 +329,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Save to favourites.json
         self.save_favourites()
-
+        # reload self.favourites from file?
 
     def remove_from_favourites_from_row(self, row):
         name = self.favourites_model.item(row, 0).text()  # Assuming name is in the first column
@@ -372,7 +409,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("ArkAscended.exe is running. Please close it before making changes.")
         else:
             try:
-                with open(self.config.get("library_path", ""), 'r', encoding='utf-8-sig') as file: # change to 'w'
+                with open(self.config.get("library_path", ""), 'r', encoding='utf-8-sig') as file: # loading from file instead of self.library just in case something changed. could also refresh self.library right before instead
                     data = json.load(file)  # Load the JSON data
 
                 # Access the list of installed mods
