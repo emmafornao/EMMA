@@ -47,4 +47,11 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
         ☐ clean up commented code (specifically for log_event and log_file_path which were replaced by a logger)
         ☐ eventFilterOLD(self, obj, event): can this be removed?
         ☐ add/remove favourites: change from row to self.tableView_installed.selectedIndexes() to add/remove all selected
+        ☐ clean up "handleInstalledMenuAction" - maybe extract the row/modid selection bit
+
+    Code Cleanup:
+        ☐ fix function and variable names to use the same convertion (pushButton_removeMods -> push_button_remove_mods)
+        ☐ use uninstall instead of remove for mods (function and variable names)
+
+
         

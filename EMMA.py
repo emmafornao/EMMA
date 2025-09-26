@@ -15,6 +15,7 @@ from PyQt6.QtCore import QEvent, QModelIndex, Qt
 # UI Windows
 from mainwindow import Ui_MainWindow
 from cleardynamicdownloads import Ui_ClearDynamicDownloads
+from curseforgeapihandler import API_Handler
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -49,6 +50,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.library = {}
         self.favourites = {}
 
+        # API Handler
+        self.api_handler = API_Handler()
 
         # UI
         # Create models for the QTableViews
@@ -94,6 +97,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_ToggleFavourite.clicked.connect(self.toggle_favourite) """
 
         self.pushButton_clearDynamicDownloads.clicked.connect(self.clear_dynamic_downloads)
+        self.pushButton_removeMods.clicked.connect(self.uninstall_mods)
+        self.pushButton_reinstallMods.clicked.connect(self.reinstall_mods)
+
         self.action_select_ark_folder.triggered.connect(self.select_ark_folder)
         self.action_settings.triggered.connect(self.settings_menu)
         self.action_about.triggered.connect(self.about_menu)
@@ -218,9 +224,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif action_data == "uninstall":
                 print(f"Uninstall action triggered for row {row}")
                 # Implement Uninstall functionality using row
+
+                # Determine the row index based on the context
+                if row is None:  # If no row is provided, use the current index
+                    selected_index = self.tableView_installed.currentIndex()
+                    if not selected_index.isValid():
+                        QMessageBox.warning(self, "Warning", "No mod selected.")
+                        return
+                    row = selected_index.row()  # Get the row from the current index
+
+                mod_id = int(self.installed_model.item(row, 1).text())
+                mod_ids = set()
+                mod_ids.add(mod_id)         
+                self.uninstall_mods(mod_ids)
             elif action_data == "reinstall":
                 print(f"Reinstall action triggered for row {row}")
                 # Implement Reinstall functionality using row
+
+                # Determine the row index based on the context
+                if row is None:  # If no row is provided, use the current index
+                    selected_index = self.tableView_installed.currentIndex()
+                    if not selected_index.isValid():
+                        QMessageBox.warning(self, "Warning", "No mod selected.")
+                        return
+                    row = selected_index.row()  # Get the row from the current index
+
+                mod_id = int(self.installed_model.item(row, 1).text())
+                mod_ids = set()
+                mod_ids.add(mod_id)         
+                self.reinstall_mods(mod_ids)
             elif action_data == "open_website":
                 print(f"Open Website action triggered for row {row}")
                 # Implement Open Website functionality using row
@@ -377,6 +409,91 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open(self.favourites_path, 'w') as file:
             json.dump(favourites_data, file, indent=4)
 
+    def uninstall_mods(self, mod_ids_to_remove):
+        # Check if ArkAscended.exe is running
+        if self.is_process_running("ArkAscended.exe"):
+            print("ArkAscended.exe is running. Please close it before making changes.")
+        else:
+            try:
+                with open(self.config.get("library_path", ""), 'r', encoding='utf-8-sig') as file: # loading from file instead of self.library just in case something changed. could also refresh self.library right before instead
+                    data = json.load(file)  # Load the JSON data
+
+                # Access the list of installed mods
+                installed_mods = data.get("installedMods", [])
+                print(mod_ids_to_remove)
+                mods_to_remove = {}
+
+                for mod in installed_mods:
+                    if mod.get("details", {}).get("iD", "") in mod_ids_to_remove:
+                        name = mod.get("details", {}).get("name", "")
+                        path = mod.get("pathOnDisk", "")
+                        print(path)
+                        mods_to_remove[path] = name
+                
+                if not mods_to_remove:
+                    print("mod not found - mods_to_remove is empty")
+
+                dialog = Ui_ClearDynamicDownloads(mods_to_remove.values(), self)
+                if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                    # Code to execute when Yes is pressed
+                    # print("Dialog accepted.")
+
+                    # Remove matching entries from installed_mods
+                    updated_installed_mods = [
+                        mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in mod_ids_to_remove
+                    ]
+                    
+                    
+                    # Update the data dictionary
+                    data["installedMods"] = updated_installed_mods
+
+
+                    for folder in mods_to_remove.keys():
+
+                        # Create the full path to the folder so it can be deleted
+                        try:
+                            folder_path = self.config.get("mods_path", "") + folder
+                        except Exception as e:
+                            print(f"Mod path missing in config file. Did you select your Ark Folder yet? Error: {e}")
+                        
+
+                        # Check if the directory exists before attempting to delete
+                        if os.path.exists(folder_path):
+                            try:
+                                shutil.rmtree(folder_path)
+                                print(f"'{folder_path}' has been deleted successfully.")
+                            except Exception as e:
+                                print(f"An error occurred: {e}")
+                                self.logger.error({e})
+                        else:
+                            print(f"'{folder_path}' does not exist.")
+                            self.logger.warning('Mod folder %s does not exist and can not be deleted.', folder)
+
+                        # Write using logger
+                        self.log_event("UNINSTALL", mods_to_remove[folder], f'Path: {folder}')
+                    
+
+                    # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
+                    with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
+                        json.dump(data, file)
+
+
+
+            except Exception as e:
+                print(f"Error loading JSON data: {e}")
+
+    def reinstall_mods(self, mod_ids):
+        
+        # self.uninstall_mods(mod_ids)
+
+        download_links = {}
+        for mod in mod_ids:
+            download_links[mod] = self.api_handler.get_download_link(mod)
+            print("mod ", mod, " has main file id: ", download_links[mod])
+            self.api_handler.download_mod(mod, download_links[mod])
+
+
+
     def is_process_running(self, process_name):
         # Iterate over all running processes
         for proc in psutil.process_iter(['name']):
@@ -493,8 +610,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except Exception as e:
                 print(f"Error loading JSON data: {e}")
 
-            # print(self.mods_dir)
-        
     def select_ark_folder(self):
         # self.config.get("library_path", "") 
         # self.config.set("library_path")

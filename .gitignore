@@ -2,6 +2,7 @@
 *.json
 data/
 favourites.json
+data/API_KEY.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
