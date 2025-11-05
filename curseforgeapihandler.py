@@ -47,7 +47,14 @@ class API_Handler():
         wget.download(url, "mod.zip")
 
     def update_library_data(self, mod_id):
-        return None
+        response = requests.get(self.url + 'mods/' + str(mod_id), headers = self.headers)
+        if response.status_code == 200:
+            mod_cf_data = response.json()
+            mod_library_entry = {}
+            
+
+
+
         
     def mod_search(self, params):
         r = requests.get(self.url + 'mods/search', params, headers = self.headers)

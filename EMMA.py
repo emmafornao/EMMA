@@ -236,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 mod_id = int(self.installed_model.item(row, 1).text())
                 mod_ids = set()
                 mod_ids.add(mod_id)         
-                self.uninstall_mods(mod_ids)
+                self.uninstall_mods(mod_ids, False)
             elif action_data == "reinstall":
                 print(f"Reinstall action triggered for row {row}")
                 # Implement Reinstall functionality using row
@@ -409,7 +409,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open(self.favourites_path, 'w') as file:
             json.dump(favourites_data, file, indent=4)
 
-    def uninstall_mods(self, mod_ids_to_remove):
+    def uninstall_mods(self, mod_ids_to_remove, keep_library_entry=False):
         # Check if ArkAscended.exe is running
         if self.is_process_running("ArkAscended.exe"):
             print("ArkAscended.exe is running. Please close it before making changes.")
@@ -438,14 +438,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     # Code to execute when Yes is pressed
                     # print("Dialog accepted.")
 
-                    # Remove matching entries from installed_mods
-                    updated_installed_mods = [
-                        mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in mod_ids_to_remove
-                    ]
                     
-                    
-                    # Update the data dictionary
-                    data["installedMods"] = updated_installed_mods
 
 
                     for folder in mods_to_remove.keys():
@@ -472,10 +465,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         # Write using logger
                         self.log_event("UNINSTALL", mods_to_remove[folder], f'Path: {folder}')
                     
+                    if not keep_library_entry:
+                        # Remove matching entries from installed_mods
+                        updated_installed_mods = [
+                            mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in mod_ids_to_remove
+                        ]
+                        
+                        # Update the data dictionary
+                        data["installedMods"] = updated_installed_mods
 
-                    # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
-                    with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
-                        json.dump(data, file)
+                        # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
+                        with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
+                            json.dump(data, file)
 
 
 
@@ -484,7 +485,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def reinstall_mods(self, mod_ids):
         
-        # self.uninstall_mods(mod_ids)
+        # self.uninstall_mods(mod_ids, True)
 
         download_links = {}
         for mod in mod_ids:
@@ -492,6 +493,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("mod ", mod, " has main file id: ", download_links[mod])
             self.api_handler.download_mod(mod, download_links[mod])
 
+        # update library entries
+            
 
 
     def is_process_running(self, process_name):
