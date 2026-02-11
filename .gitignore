@@ -4,6 +4,13 @@ data/
 favourites.json
 data/API_KEY.txt
 
+# Visual Studio cache/options directory
+vs/
+.vs/
+*.suo
+*.user
+*.sqlite
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
