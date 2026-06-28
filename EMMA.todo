@@ -1,4 +1,7 @@
 EMMA (Emma's Mod Manager for Ark: Survival Ascended):
+
+    ☐ @critical CHECK EVERY FUNCTION FOR TRY/EXCEPT AND IF THE FUNCTION SHOULD STOP AFTER A FAILED TRY, ADD RETURN TO THE EXCEPT BRANCH. I'm dumb and this should've been in there all along.
+
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)
     ☐ don't add to favourites when looking at a different tab
     ☐ add "remove dynamic cosmetics" and maybe also add this info to view (not favourites though since it's situational?)
