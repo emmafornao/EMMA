@@ -1,10 +1,13 @@
 import requests
 import wget
+import pylnk3
+import sys
 
 class API_Handler():
     def __init__(self):
 
-        with open('data/API_KEY.txt', 'r') as file:
+        api_key_link = pylnk3.parse("data/API_KEY.txt.lnk")
+        with open(api_key_link.path, 'r') as file:
             self.api_key = file.read()
 
         self.headers = {
@@ -30,6 +33,18 @@ class API_Handler():
 
         return mod_data.get("data", []).get("mainFileId", "")
 
+    # Custom progress bar function
+    def progress_bar(current, total, width=50):
+        """
+        Displays a progress bar in the console.
+        :param current: Bytes downloaded so far
+        :param total: Total bytes to download
+        :param width: Width of the progress bar
+        """
+        progress_message = f"Downloading: {current / total * 100:.2f}% [{current}/{total} bytes]"
+        sys.stdout.write("\r" + progress_message)
+        sys.stdout.flush()
+
     def download_mod(self, mod_id, mainfile_id):
         # url = self.url + 'mods/' + str(mod_id) + '/files/' + str(mainfile_id) + '/download'
         url = 'https://www.curseforge.com/api/v1/mods/' + str(mod_id) + '/files/' + str(mainfile_id) + '/download'
@@ -44,15 +59,20 @@ class API_Handler():
         else:
             print(f"Failed to download {url}: {response.status_code}") """
 
-        wget.download(url, "mod.zip")
+        try:
+            filename = wget.download(url)#, bar=self.progress_bar)
+            print(f"\nDownload complete: {filename}")
+        except Exception as e:
+            print(f"\nError: {e}")
 
-    def update_library_data(self, mod_id):
+    def download_mod_entry(self, mod_id):
         response = requests.get(self.url + 'mods/' + str(mod_id), headers = self.headers)
         if response.status_code == 200:
             mod_cf_data = response.json()
-            mod_library_entry = {}
-            
-
+            # mod_library_entry = {}
+            print("Mod entry " + str(mod_id) + " downloaded.")
+            return mod_cf_data
+        print("Failed to download mod info to update library.json entry.")
 
 
         

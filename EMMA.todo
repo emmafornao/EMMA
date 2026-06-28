@@ -71,33 +71,36 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
             "id": "user_id"
 
 
-key_map = {
-    "data.screenshots": "details.screenshots",
-    "data.id": "details:iD",
-    "data.gameId": "details.gameId",
-    "data.name": "details.name",
-    "data.slug": "details.slug",
-    "data.links": "details.links",
-    "data.summary": "details.summary",
-    "data.status": "details.status",            // this goes from digits to names so might cause issues
-    "data.downloadCount": "details.downloadCount",
-    "data.isFeatured": "details.isFeatured",
-    "data.primaryCategoryId": "details.primaryCategoryId",
-    "data.categories": "details.categories",
-    "data.classId": "details.classId",
-    "data.authors": "details.authors",
-    "data.logo": "details.logo",
-    "data.mainFileId": "details.mainFileId",
-    "data.latestFiles": "details.latestFiles",
-    "data.latestFilesIndexes": "details.latestFilesIndexes",
-    "data.dateCreated": "details.cateCreated",
-    "data.dateModified": "details.dateModified",
-    "data.dateReleased": "details.dateReleased",
-    "data.allowModDistribution": "details.allowModDistribution",
-    "data.gamePopularityRank": "details.gamePopularityRank",
-    "data.isAvailable": "details.isAvailable",
-    "data.ratingDetails": "details.ratingDetails"       // score goes from digit to names
-    //"data.featuredProjectTag": "details.isFeatured"   //unclear if these are the same. also goes from 0/1 to false/true
-}
+        key_map = {
+            "data.screenshots": "details.screenshots",
+            "data.id": "details:iD",
+            "data.gameId": "details.gameId",
+            "data.name": "details.name",
+            "data.slug": "details.slug",
+            "data.links": "details.links",
+            "data.summary": "details.summary",
+            "data.status": "details.status",            // this goes from digits to names so might cause issues
+            "data.downloadCount": "details.downloadCount",
+            "data.isFeatured": "details.isFeatured",
+            "data.primaryCategoryId": "details.primaryCategoryId",
+            "data.categories": "details.categories",
+            "data.classId": "details.classId",
+            "data.authors": "details.authors",
+            "data.logo": "details.logo",
+            "data.mainFileId": "details.mainFileId",
+            "data.latestFiles": "details.latestFiles",
+            "data.latestFilesIndexes": "details.latestFilesIndexes",
+            "data.dateCreated": "details.dateCreated",
+            "data.dateModified": "details.dateModified",
+            "data.dateReleased": "details.dateReleased",
+            "data.allowModDistribution": "details.allowModDistribution",
+            "data.gamePopularityRank": "details.gamePopularityRank",
+            "data.isAvailable": "details.isAvailable",
+            "data.ratingDetails": "details.ratingDetails"       // score goes from digit to names
+            //"data.featuredProjectTag": "details.isFeatured"   //unclear if these are the same. also goes from 0/1 to false/true
+        }
 
-might need to simulate "installedFile" by copying the info of the file we're installing
+        might need to simulate "installedFile" by copying the info of the file we're installing
+
+    New:
+        ☐ Is this a valid API key? \ARK Survival Ascended\ShooterGame\Binaries\Win64\ShooterGame\ModsUserData\83374\local\user_info.json

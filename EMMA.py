@@ -483,17 +483,78 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except Exception as e:
                 print(f"Error loading JSON data: {e}")
 
+    def update_library_entries(self, mod_ids, mod_entries): # meant to update one or more at once. avoid calling it over and over again
+
+        key_map = {
+        # CF : WC
+        "screenshots": "screenshots",
+        "id": "iD",
+        "gameId": "gameId",
+        "name": "name",
+        "slug": "slug",
+        "links": "links",
+        "summary": "summary",
+        # "status": "status",            // this goes from digits to names so might cause issues
+        "downloadCount": "downloadCount",
+        "isFeatured": "isFeatured",
+        "primaryCategoryId": "primaryCategoryId",
+        "categories": "categories",
+        "classId": "classId",
+        "authors": "authors",
+        "logo": "logo",
+        "mainFileId": "mainFileId",
+        "latestFiles": "latestFiles",
+        "latestFilesIndexes": "latestFilesIndexes",
+        "dateCreated": "dateCreated",
+        "dateModified": "dateModified",
+        "dateReleased": "dateReleased",
+        "allowModDistribution": "allowModDistribution",
+        "gamePopularityRank": "gamePopularityRank",
+        "isAvailable": "isAvailable",
+        # "ratingDetails": "ratingDetails"       // score goes from digit to names
+        # "featuredProjectTag": "isFeatured"   //unclear if these are the same. also goes from 0/1 to false/true
+        }
+
+        # Check if ArkAscended.exe is running
+        if self.is_process_running("ArkAscended.exe"):
+            print("ArkAscended.exe is running. Please close it before making changes.")
+            return
+        
+        # Update library.json just in case
+        self.load_data_from_json(self.config.get("library_path", ""), self.installed_model)
+
+        #installed_mods = self.library#.get("installedMods", [])
+
+        for mod_id in mod_ids:
+            for mod in self.library:
+                if mod.get("details", {}).get("iD", "") == mod_id:
+                    for value, key in key_map.items(): # yes, it should be "value, key". key_map is flipped
+                        mod["details"][key] = mod_entries[mod_id]["data"][value]
+                    break
+
+        #self.library["installedMods"] = installed_mods
+
+        # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
+        with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
+            json.dump(self.library, file)
+
+
     def reinstall_mods(self, mod_ids):
         
         # self.uninstall_mods(mod_ids, True)
 
+        mod_entries = {}
         download_links = {}
         for mod in mod_ids:
             download_links[mod] = self.api_handler.get_download_link(mod)
             print("mod ", mod, " has main file id: ", download_links[mod])
             self.api_handler.download_mod(mod, download_links[mod])
+            mod_entries[mod] = self.api_handler.download_mod_entry(mod)
+        
 
-        # update library entries
+        self.update_library_entries(mod_ids, mod_entries)
+
+        # unzip mod and move it to the right folder
             
 
 
@@ -574,7 +635,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         # Create the full path to the folder so it can be deleted
                         # folder_path = Path(str(self.mods_dir).replace('\\', '/')) / folder
                         try:
-                            folder_path = self.config.get("mods_path", "") / folder
+                            folder_path = self.config.get("mods_path", "") + folder
                         except Exception as e:
                             print(f"Mod path missing in config file. Did you select your Ark Folder yet? Error: {e}")
                         
