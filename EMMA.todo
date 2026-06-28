@@ -1,6 +1,17 @@
 EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
     ☐ @critical CHECK EVERY FUNCTION FOR TRY/EXCEPT AND IF THE FUNCTION SHOULD STOP AFTER A FAILED TRY, ADD RETURN TO THE EXCEPT BRANCH. I'm dumb and this should've been in there all along.
+    ☐ @bug clear_dynamic_downloads(self) creates the full list first but if only some folders aren't found, it can't just write those mods as removed. the new library.json doesn't get saved. the data needs to be changed with each deleted folder to stay in sync
+        -> make dynamic_mods a nested dict with path as keys and name and id as a dict as the value as follows
+            dynamic_mods = {
+                path: {"name": name, "id": mod_id}
+                }
+        then I can probably also delete dynamicmod_modId and use dynamic_mods[path]["id"] instead
+
+        
+    ☐ write tests, e.g. for clear_dynamic_downloads: use a predetermined library.json, create the folders needed for it, use a config that points to that (as to not delete actual mods), see if everything gets deleted and logged correctly
+
+
 
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)
     ☐ don't add to favourites when looking at a different tab

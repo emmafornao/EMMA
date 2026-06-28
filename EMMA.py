@@ -596,39 +596,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # Access the list of installed mods
                 installed_mods = data.get("installedMods", [])
 
-                dynamicmod_modId = set()
                 dynamic_mods = {}
 
                 for mod in installed_mods:
                 
                     if mod.get("dynamicContent") == True:
                         # print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
-                        dynamicmod_modId.add(mod.get("details", {}).get("iD", ""))
+                        mod_id = mod.get("details", {}).get("iD", "")
                         name = mod.get("details", {}).get("name", "")
                         path = mod.get("pathOnDisk", "")
-                        dynamic_mods[path] = name
+                        dynamic_mods[path] = {"name": name, "id": mod_id}
                         # print(mod)
                 
 
-                dialog = Ui_ClearDynamicDownloads(dynamic_mods.values(), self)
+                dialog = Ui_ClearDynamicDownloads([v["name"] for v in dynamic_mods.values()], self)
                 if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
                     # Code to execute when Yes is pressed
                     # print("Dialog accepted.")
 
-                    # Remove matching entries from installed_mods
-                    updated_installed_mods = [
-                        mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in dynamicmod_modId
-                    ]
-                    
-                    """ print("mods remaining: ")
-                    for mod in updated_installed_mods:
-                        print(mod.get("details", {}).get("name", "")) """
-                    
-                    # Update the data dictionary
-                    data["installedMods"] = updated_installed_mods
-
                     # Open the log file in append mode
                     # with open(self.log_file_path, 'a', encoding='utf-8-sig') as log_file:
+
+                    deleted_mods = set()
 
                     for folder in dynamic_mods.keys():
 
@@ -648,6 +637,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             try:
                                 shutil.rmtree(folder_path)
                                 print(f"'{folder_path}' has been deleted successfully.")
+                                deleted_mods.add(dynamic_mods[folder]["id"])
                             except Exception as e:
                                 print(f"An error occurred: {e}")
                                 self.logger.error({e})
@@ -667,6 +657,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         # Write using logger
                         self.log_event("CLEARDYNAMIC", dynamic_mods[folder], f'Path: {folder}')
                     
+
+                    # Remove matching entries from installed_mods
+                    # deleted_mods gets filled every time a folder gets deleted so only entries for mods are removed that got successfully deleted
+                    updated_installed_mods = [
+                        mod for mod in installed_mods if mod.get("details", {}).get("iD", "") not in deleted_mods
+                    ]
+                    
+                    """ print("mods remaining: ")
+                    for mod in updated_installed_mods:
+                        print(mod.get("details", {}).get("name", "")) """
+                    
+                    # Update the data dictionary
+                    data["installedMods"] = updated_installed_mods
 
                     # Write the updated data back to the JSON file - done after the log and file delete so we don't mess up the library.json in case something went wrong
                     with open(self.config.get("library_path", ""), 'w', encoding='utf-8-sig') as file:
