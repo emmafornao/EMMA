@@ -638,6 +638,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             folder_path = self.config.get("mods_path", "") + folder
                         except Exception as e:
                             print(f"Mod path missing in config file. Did you select your Ark Folder yet? Error: {e}")
+                            return
                         
                         # Delete the folder
                         # shutil.rmtree(folder_path)
@@ -650,9 +651,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             except Exception as e:
                                 print(f"An error occurred: {e}")
                                 self.logger.error({e})
+                                return
                         else:
                             print(f"'{folder_path}' does not exist.")
                             self.logger.warning('Mod folder %s does not exist and can not be deleted.', folder)
+                            return
 
                         
                         """ # Get the current time
