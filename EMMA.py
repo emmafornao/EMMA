@@ -3,10 +3,12 @@ import os
 import psutil
 import json
 import shutil
+import zipfile
 from pathlib import Path
 from datetime import datetime
 import logging
 import webbrowser
+
 
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication, QFileDialog
@@ -22,10 +24,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)  # Set up the UI
 
-        # Logger
-        # Create data folder in case it doesn't exist yet
+        # Create data and downloads folders in case they don't exist yet
         os.makedirs('data', exist_ok = True)
+        os.makedirs('downloads', exist_ok = True)
 
+
+        # Logger
         # Create logger
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
@@ -312,7 +316,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             installed_mods = data.get("installedMods", [])
 
             if "library.json" in file_path:
-                    self.library = installed_mods
+                    self.library = data
             elif "favourites.json" in file_path:
                 self.favourites = installed_mods
 
@@ -334,7 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 model.appendRow(row)  # Add the row to the model
 
         except Exception as e:
-            print(f"Error loading JSON data: {e}")
+            print(f"Error loading JSON data in \"load_data_from_json\": {e}")
 
     def add_to_favourites_from_row(self, row=None):
         # Determine the row index based on the context
@@ -526,7 +530,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #installed_mods = self.library#.get("installedMods", [])
 
         for mod_id in mod_ids:
-            for mod in self.library:
+            for mod in self.library["installedMods"]:
                 if mod.get("details", {}).get("iD", "") == mod_id:
                     for value, key in key_map.items(): # yes, it should be "value, key". key_map is flipped
                         mod["details"][key] = mod_entries[mod_id]["data"][value]
@@ -544,18 +548,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.uninstall_mods(mod_ids, True)
 
         mod_entries = {}
-        download_links = {}
+        mainfileIds = {}
         for mod in mod_ids:
-            download_links[mod] = self.api_handler.get_download_link(mod)
-            print("mod ", mod, " has main file id: ", download_links[mod])
-            self.api_handler.download_mod(mod, download_links[mod])
+            mainfileIds[mod] = self.api_handler.get_mainFileId(mod)
+            print("mod ", mod, " has main file id: ", mainfileIds[mod])
+            self.api_handler.download_mod(mod, mainfileIds[mod])
             mod_entries[mod] = self.api_handler.download_mod_entry(mod)
+            # unzip mod and move it to the right folder
+            # Path(__file__).resolve().parent is the parent folder of this .py file
+            zip_path = Path(__file__).resolve().parent / f'downloads\\{mod}.zip'
+            # print(zip_path)
+            extract_to = Path(__file__).resolve().parent / f'downloads\\{mod}_{mainfileIds[mod]}'
+            # print(extract_to)
+            self.extract_and_delete_zip(zip_path, extract_to)
         
 
         self.update_library_entries(mod_ids, mod_entries)
 
-        # unzip mod and move it to the right folder
-            
+
+
+        
+    def extract_and_delete_zip(self, zip_path, extract_to=None):
+        zip_path = Path(zip_path)
+        if extract_to is None:
+            extract_to = zip_path.parent / zip_path.stem
+        else:
+            extract_to = Path(extract_to)
+
+        extract_to.mkdir(parents=True, exist_ok=True)
+
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(extract_to)
+            zip_path.unlink()  # delete only after successful extraction
+        except Exception:
+            # If extraction fails, leave the zip in place
+            raise
 
 
     def is_process_running(self, process_name):

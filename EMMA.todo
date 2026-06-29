@@ -1,16 +1,11 @@
 EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
     ☐ @critical CHECK EVERY FUNCTION FOR TRY/EXCEPT AND IF THE FUNCTION SHOULD STOP AFTER A FAILED TRY, ADD RETURN TO THE EXCEPT BRANCH. I'm dumb and this should've been in there all along.
-    ☐ @bug clear_dynamic_downloads(self) creates the full list first but if only some folders aren't found, it can't just write those mods as removed. the new library.json doesn't get saved. the data needs to be changed with each deleted folder to stay in sync
-        -> make dynamic_mods a nested dict with path as keys and name and id as a dict as the value as follows
-            dynamic_mods = {
-                path: {"name": name, "id": mod_id}
-                }
-        then I can probably also delete dynamicmod_modId and use dynamic_mods[path]["id"] instead
-
-        
+    ✔ @bug clear_dynamic_downloads(self) creates the full list first but if only some folders aren't found, it can't just write those mods as removed. the new library.json doesn't get saved. the data needs to be changed with each deleted folder to stay in sync @done(26-06-29 12:16)
+    ✔ @bug "reinstall_mod" saves the library without outer dict somewhere (just saves the installedMods list within) which then breaks loading @done(26-06-29 12:16)
     ☐ write tests, e.g. for clear_dynamic_downloads: use a predetermined library.json, create the folders needed for it, use a config that points to that (as to not delete actual mods), see if everything gets deleted and logged correctly
-
+    ✔ create download/temp folder for all the downloads (or direct them to the windows download folder?) @done(26-06-29 12:11)
+    ☐ def reinstall_mods(self, mod_ids): folder name should be mod plus mainfile ids combined? do I need to pass that mainfile id over from the api handler? double check if that would be the correct id
 
 
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)

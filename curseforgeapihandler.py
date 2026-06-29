@@ -19,7 +19,7 @@ class API_Handler():
         self.url = 'https://api.curseforge.com/v1/'
         # self.url = 'https://www.curseforge.com/api/v1/' # used for downloads in browser
 
-    def get_download_link(self, mod_id):
+    def get_mainFileId(self, mod_id):
         response = requests.get(self.url + 'mods/' + str(mod_id), headers = self.headers)
         mod_data = response.json()
         # return mod_data.get("data", []).get("mainFileId", "")
@@ -60,10 +60,12 @@ class API_Handler():
             print(f"Failed to download {url}: {response.status_code}") """
 
         try:
-            filename = wget.download(url)#, bar=self.progress_bar)
+            print(f"Trying to download mod {mod_id} with main file {mainfile_id}")
+            print(f"URL: {url}")
+            filename = wget.download(url, out=f'downloads\\{mod_id}.zip')#, bar=self.progress_bar)
             print(f"\nDownload complete: {filename}")
         except Exception as e:
-            print(f"\nError: {e}")
+            print(f"\nError downloading mod: {e}")
 
     def download_mod_entry(self, mod_id):
         response = requests.get(self.url + 'mods/' + str(mod_id), headers = self.headers)
