@@ -553,7 +553,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # self.uninstall_mods(mod_ids, True)
 
-        old_mod_folders = []
         
         mod_entries = {}
         mainfileIds = {}
@@ -563,14 +562,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.api_handler.download_mod(mod, mainfileIds[mod])
             mod_entries[mod] = self.api_handler.download_mod_entry(mod)
 
-            # rename/delete old folder so we can extract the download in place
+            # delete old folder so we can extract the download in place
             # obtain pathOnDisk for the entry in self.library with the correct mod id
             path_on_disk= next((item["pathOnDisk"] for item in self.library["installedMods"] if item.get("details", {}).get("iD") == mod), None)
-            current_folder_name = self.config.get("mods_path", "") + path_on_disk
-            os.rename(current_folder_name, current_folder_name + "_OLD")
-            old_mod_folders.append(current_folder_name + "_OLD")
-            print(f'Renamed old mod install to {current_folder_name + "_OLD"}')
-
+            current_folder = self.config.get("mods_path", "") + path_on_disk
+            if os.path.exists(current_folder):
+                try:
+                    shutil.rmtree(current_folder)
+                    print(f'Deleted old mod install at {current_folder}')
+                except OSError as e:
+                    print(f'Could not delete old mod install: {e.filename} - {e.strerror}')
 
             # unzip mod into the right folder
             # Path(__file__).resolve().parent is the parent folder of this .py file
