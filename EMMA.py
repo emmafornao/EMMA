@@ -534,11 +534,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for mod_id in mod_ids:
             for mod in self.library["installedMods"]:
                 if mod.get("details", {}).get("iD", "") == mod_id:
-                    self.logger.debug(f'library entry of {mod_id}: ', mod) # entry before we edit it
+                    self.logger.debug(f'Updating library entry of mod {mod_id}. See entries below.')
+                    self.logger.debug(f'library entry of {mod_id}: {mod}') # entry before we edit it
                     for value, key in key_map.items(): # yes, it should be "value, key". key_map is flipped
                         mod["details"][key] = mod_entries[mod_id]["data"][value]
-                    self.logger.debug(f'new entry of {mod_id}: ', mod)
-                    self.logger.debug(f'Curseforge entry of {mod_id}: ', mod_entries[mod_id])
+                    self.logger.debug(f'new entry of {mod_id}: {mod}')
+                    self.logger.debug(f'Curseforge entry of {mod_id}: {mod_entries[mod_id]}')
                     break
 
         #self.library["installedMods"] = installed_mods
