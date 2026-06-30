@@ -5,15 +5,14 @@ import json
 import shutil
 import zipfile
 from pathlib import Path
-from datetime import datetime
 import logging
 import webbrowser
 
 
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QMainWindow, QTableView, QVBoxLayout, QMessageBox, QMenu, QWidget, QApplication, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QMenu, QFileDialog
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtCore import QEvent, QModelIndex, Qt
+from PyQt6.QtCore import QEvent, Qt
 # UI Windows
 from mainwindow import Ui_MainWindow
 from cleardynamicdownloads import Ui_ClearDynamicDownloads
