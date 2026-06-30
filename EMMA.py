@@ -576,7 +576,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # unzip mod into the right folder
             # Path(__file__).resolve().parent is the parent folder of this .py file
             zip_path = Path(__file__).resolve().parent / f'downloads\\{mod}.zip'
-            extract_to = self.config.get("mods_path", "") + '/83374/' + str(mod) + '_' + str(mainfileIds[mod])
+            extract_to = self.config.get("mods_path", "") + '83374/' + str(mod) + '_' + str(mainfileIds[mod])
             self.extract_and_delete_zip(zip_path, extract_to)
             print(f'Extracted mod to {extract_to}')
 
