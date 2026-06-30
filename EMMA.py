@@ -553,6 +553,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # self.uninstall_mods(mod_ids, True)
 
+        old_mod_folders = []
+        
         mod_entries = {}
         mainfileIds = {}
         for mod in mod_ids:
@@ -560,12 +562,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print("mod ", mod, " has main file id: ", mainfileIds[mod])
             self.api_handler.download_mod(mod, mainfileIds[mod])
             mod_entries[mod] = self.api_handler.download_mod_entry(mod)
-            # unzip mod and move it to the right folder
+
+            # rename/delete old folder so we can extract the download in place
+            # obtain pathOnDisk for the entry in self.library with the correct mod id
+            path_on_disk= next((item["pathOnDisk"] for item in self.library["installedMods"] if item.get("details", {}).get("iD") == mod), None)
+            current_folder_name = self.config.get("mods_path", "") + path_on_disk
+            os.rename(current_folder_name, current_folder_name + "_OLD")
+            old_mod_folders.append(current_folder_name + "_OLD")
+            print(f'Renamed old mod install to {current_folder_name + "_OLD"}')
+
+
+            # unzip mod into the right folder
             # Path(__file__).resolve().parent is the parent folder of this .py file
             zip_path = Path(__file__).resolve().parent / f'downloads\\{mod}.zip'
-            # print(zip_path)
-            extract_to = Path(__file__).resolve().parent / f'downloads\\{mod}_{mainfileIds[mod]}'
-            # print(extract_to)
+            extract_to = self.config.get("mods_path", "") + '/83374/' + str(mod) + '_' + str(mainfileIds[mod])
             self.extract_and_delete_zip(zip_path, extract_to)
             print(f'Extracted mod to {extract_to}')
 
@@ -575,9 +585,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # TODO it might be better to directly extract to where it needs to go
             # TODO should we keep a backup of the library.json and the mod folders to see what went wrong? maybe make that a debug option
 
+            # TODO we really want to extract the mod to something like: self.config.get("mods_path", "") \ '83374' \ mod_id + '_' + mainFileId
+            #       we have to manually add the 83374 because that folder is part of the path in the library file, so elsewhere it would be double if it was part of mods_path
 
 
         self.update_library_entries(mod_ids, mod_entries)
+
 
 
 

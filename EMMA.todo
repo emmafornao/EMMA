@@ -1,5 +1,6 @@
 EMMA (Emma's Mod Manager for Ark: Survival Ascended):
 
+    ☐ @critical Fix every case where self.library expects to work with the installedMods list rather than the outer dict
     ☐ @critical CHECK EVERY FUNCTION FOR TRY/EXCEPT AND IF THE FUNCTION SHOULD STOP AFTER A FAILED TRY, ADD RETURN TO THE EXCEPT BRANCH. I'm dumb and this should've been in there all along.
     ✔ @bug clear_dynamic_downloads(self) creates the full list first but if only some folders aren't found, it can't just write those mods as removed. the new library.json doesn't get saved. the data needs to be changed with each deleted folder to stay in sync @done(26-06-29 12:16)
     ✔ @bug "reinstall_mod" saves the library without outer dict somewhere (just saves the installedMods list within) which then breaks loading @done(26-06-29 12:16)
