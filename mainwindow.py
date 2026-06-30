@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QAbstractItemView, QApplication
 
 
 class Ui_MainWindow(object):
@@ -15,14 +15,16 @@ class Ui_MainWindow(object):
         self.tab_installed = QtWidgets.QWidget()
         self.tab_installed.setObjectName("tab_installed")
         self.tableView_installed = QtWidgets.QTableView(parent=self.tab_installed)
-        self.tableView_installed.setGeometry(QtCore.QRect(0, 0, 999, 534))
+        # self.tableView_installed.setGeometry(QtCore.QRect(0, 0, 999, 534))
+        self.tableView_installed.resize(1000, 500)
         self.tableView_installed.setObjectName("tableView_installed")
         self.tableView_installed.installEventFilter(self)
         self.tabWidget.addTab(self.tab_installed, "")
         self.tab_favourites = QtWidgets.QWidget()
         self.tab_favourites.setObjectName("tab_favourites")
         self.tableView_favourites = QtWidgets.QTableView(parent=self.tab_favourites)
-        self.tableView_favourites.setGeometry(QtCore.QRect(0, 0, 999, 534))
+        # self.tableView_favourites.setGeometry(QtCore.QRect(0, 0, 999, 534))
+        self.tableView_favourites.resize(1000, 500)
         self.tableView_favourites.setObjectName("tableView_favourites")
         self.tableView_favourites.installEventFilter(self)
         self.tabWidget.addTab(self.tab_favourites, "")
@@ -36,7 +38,6 @@ class Ui_MainWindow(object):
         self.pushButton_clearDynamicDownloads.setGeometry(QtCore.QRect(240, 549, 180, 25))
         self.pushButton_clearDynamicDownloads.setObjectName("pushButton_clearDynamicDownloads")
         MainWindow.setCentralWidget(self.centralwidget)
-
 
         self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 20))
@@ -78,6 +79,7 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
