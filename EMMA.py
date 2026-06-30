@@ -28,15 +28,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         os.makedirs('data', exist_ok = True)
         os.makedirs('downloads', exist_ok = True)
 
+        # log_level = logging.INFO
+        log_level = logging.DEBUG
 
         # Logger
         # Create logger
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(log_level)
 
         # Create a FileHandler
         file_handler = logging.FileHandler('data/events.log')
-        file_handler.setLevel(logging.DEBUG)  # Set the handler's logging level
+        file_handler.setLevel(log_level)  # Set the handler's logging level
 
         # Create a formatter and set it for the handler
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -532,8 +534,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for mod_id in mod_ids:
             for mod in self.library["installedMods"]:
                 if mod.get("details", {}).get("iD", "") == mod_id:
+                    self.logger.debug(f'library entry of {mod_id}: ', mod) # entry before we edit it
                     for value, key in key_map.items(): # yes, it should be "value, key". key_map is flipped
                         mod["details"][key] = mod_entries[mod_id]["data"][value]
+                    self.logger.debug(f'new entry of {mod_id}: ', mod)
+                    self.logger.debug(f'Curseforge entry of {mod_id}: ', mod_entries[mod_id])
                     break
 
         #self.library["installedMods"] = installed_mods
@@ -561,7 +566,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             extract_to = Path(__file__).resolve().parent / f'downloads\\{mod}_{mainfileIds[mod]}'
             # print(extract_to)
             self.extract_and_delete_zip(zip_path, extract_to)
-        
+            print(f'Extracted mod to {extract_to}')
+
+            # TODO Finish reinstall_mods implementation:
+            # TODO find and delete old mod folder
+            # TODO copy over new mod folder
+            # TODO it might be better to directly extract to where it needs to go
+            # TODO should we keep a backup of the library.json and the mod folders to see what went wrong? maybe make that a debug option
+
+
 
         self.update_library_entries(mod_ids, mod_entries)
 
