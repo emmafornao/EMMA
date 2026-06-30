@@ -104,7 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_clearDynamicDownloads.clicked.connect(self.clear_dynamic_downloads)
         self.pushButton_removeMods.clicked.connect(self.uninstall_mods)
-        self.pushButton_reinstallMods.clicked.connect(self.reinstall_mods)
+        self.pushButton_reinstallMods.clicked.connect(self.reinstall_all_mods)
 
         self.action_select_ark_folder.triggered.connect(self.select_ark_folder)
         self.action_settings.triggered.connect(self.settings_menu)
@@ -583,7 +583,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_library_entries(mod_ids, mod_entries)
 
 
-
+    def reinstall_all_mods(self):
+        
+        all_mod_ids = []
+        for mod in self.library["installedMods"]:
+            all_mod_ids.append(mod.get("details", {}).get("iD", ""))
+            
+        self.reinstall_mods(all_mod_ids)
 
         
     def extract_and_delete_zip(self, zip_path, extract_to=None):
@@ -646,7 +652,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 for mod in installed_mods:
                 
-                    if mod.get("dynamicContent") == True:
+                    if mod.get("dynamicContent"):
                         # print("found dynamically downloaded mod: ", mod.get("details", {}).get("name", ""), ", pathOnDisk: ", mod.get("pathOnDisk", ""))
                         mod_id = mod.get("details", {}).get("iD", "")
                         name = mod.get("details", {}).get("name", "")

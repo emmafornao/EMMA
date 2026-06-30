@@ -9,6 +9,9 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ def reinstall_mods(self, mod_ids): folder name should be mod plus mainfile ids combined? do I need to pass that mainfile id over from the api handler? double check if that would be the correct id
     ☐ add an open ark folder option to file menu
     ☐ if possible, don't leave the game path empty when the folder browsing dialogue gets closed without selecting a folder (keep what you had before instead)
+    ☐ consider changing reinstall_mods to use uninstall_mods
+    ☐ add warning and progress (and finished message) to reinstall mods button and rename it to reinstall ALL mods or something. maybe only reinstall the selected one if one is selected
+
 
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)
     ☐ don't add to favourites when looking at a different tab
