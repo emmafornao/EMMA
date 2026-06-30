@@ -580,16 +580,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.extract_and_delete_zip(zip_path, extract_to)
             print(f'Extracted mod to {extract_to}')
 
-            # TODO Finish reinstall_mods implementation:
-            # TODO find and delete old mod folder
-            # TODO copy over new mod folder
-            # TODO it might be better to directly extract to where it needs to go
-            # TODO should we keep a backup of the library.json and the mod folders to see what went wrong? maybe make that a debug option
-
-            # TODO we really want to extract the mod to something like: self.config.get("mods_path", "") \ '83374' \ mod_id + '_' + mainFileId
-            #       we have to manually add the 83374 because that folder is part of the path in the library file, so elsewhere it would be double if it was part of mods_path
-
-
         self.update_library_entries(mod_ids, mod_entries)
 
 

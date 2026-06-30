@@ -7,7 +7,8 @@ EMMA (Emma's Mod Manager for Ark: Survival Ascended):
     ☐ write tests, e.g. for clear_dynamic_downloads: use a predetermined library.json, create the folders needed for it, use a config that points to that (as to not delete actual mods), see if everything gets deleted and logged correctly
     ✔ create download/temp folder for all the downloads (or direct them to the windows download folder?) @done(26-06-29 12:11)
     ☐ def reinstall_mods(self, mod_ids): folder name should be mod plus mainfile ids combined? do I need to pass that mainfile id over from the api handler? double check if that would be the correct id
-
+    ☐ add an open ark folder option to file menu
+    ☐ if possible, don't leave the game path empty when the folder browsing dialogue gets closed without selecting a folder (keep what you had before instead)
 
     ✔ add selected row to favourites when toggle favourites button is clicked @done(25-09-09 23:14)
     ☐ don't add to favourites when looking at a different tab
